@@ -125,7 +125,7 @@ def load_image(img):
 	
 	return img
 	
-def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_detection = True):
+def detect_face(img, detector_backend = 'opencv', enforce_detection = True):
 	
 	home = str(Path.home())
 	
@@ -138,6 +138,7 @@ def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_det
 		if os.path.isfile(face_detector_path) != True:
 			raise ValueError("Confirm that opencv is installed on your environment! Expected path ",face_detector_path," violated.")
 		
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 		face_detector = cv2.CascadeClassifier(face_detector_path)
 	
 		#--------------------------
@@ -145,19 +146,19 @@ def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_det
 		faces = []
 		
 		try: 
-			faces = face_detector.detectMultiScale(img, 1.3, 5)
+			faces = face_detector.detectMultiScale(img_gray, 1.3, 5)
 		except:
 			pass
 		
 		if len(faces) > 0:
 			x,y,w,h = faces[0] #focus on the 1st face found in the image
 			detected_face = img[int(y):int(y+h), int(x):int(x+w)]
-			return detected_face
+			return detected_face, True
 		
 		else: #if no face detected
 	
 			if enforce_detection != True:			
-				return img
+				return img, False
 	
 			else:
 				raise ValueError("Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.")
@@ -239,13 +240,13 @@ def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_det
 			
 			detected_face = base_img[int(top*aspect_ratio_y):int(bottom*aspect_ratio_y), int(left*aspect_ratio_x):int(right*aspect_ratio_x)]
 			
-			return detected_face
+			return detected_face, True
 			
 		else: #if no face detected
 	
 			if enforce_detection != True:
 				img = base_img.copy()
-				return img
+				return img, False
 	
 			else:
 				raise ValueError("Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.")
@@ -265,12 +266,12 @@ def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_det
 				
 				detected_face = img[top:bottom, left:right]
 				
-				return detected_face
+				return detected_face, True
 			
 		else: #if no face detected
 	
 			if enforce_detection != True:			
-				return img
+				return img, False
 	
 			else:
 				raise ValueError("Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.") 
@@ -285,11 +286,11 @@ def detect_face(img, detector_backend = 'opencv', grayscale = False, enforce_det
 			detection = detections[0]
 			x, y, w, h = detection["box"]
 			detected_face = img[int(y):int(y+h), int(x):int(x+w)]
-			return detected_face
+			return detected_face, True
 		
 		else: #if no face detected
 			if enforce_detection != True:			
-				return img
+				return img, False
 	
 			else:
 				raise ValueError("Face could not be detected. Please confirm that the picture is a face photo or consider to set enforce_detection param to False.")
@@ -446,14 +447,15 @@ def align_face(img, detector_backend = 'opencv'):
 				
 		return img #return img anyway
 	
-def preprocess_face(img, target_size=(224, 224), grayscale = False, enforce_detection = True, detector_backend = 'opencv'):
+def preprocess_face(img, target_size=(224, 224), enforce_detection = True, detector_backend = 'opencv'):
 	
 	#img might be path, base64 or numpy array. Convert it to numpy whatever it is.
 	img = load_image(img)
 	base_img = img.copy()
 	
-	img = detect_face(img = img, detector_backend = detector_backend, grayscale = grayscale, enforce_detection = enforce_detection)
-	
+	img, face_flag = detect_face(img = img, detector_backend = detector_backend, enforce_detection = enforce_detection)
+    if face_flag == False:
+        return img,face_flag
 	#--------------------------
 	
 	if img.shape[0] > 0 and img.shape[1] > 0:
@@ -466,11 +468,6 @@ def preprocess_face(img, target_size=(224, 224), grayscale = False, enforce_dete
 			img = base_img.copy()
 		
 	#--------------------------
-	
-	#post-processing
-	if grayscale == True:
-		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-		
 	img = cv2.resize(img, target_size)
 	img_pixels = image.img_to_array(img)
 	img_pixels = np.expand_dims(img_pixels, axis = 0)
