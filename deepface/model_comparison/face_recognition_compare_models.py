@@ -26,15 +26,14 @@ import os
 
 
 base_path = 'FaceRecognition_dataset2\\'
-osym_path = 'osym\\'
+anchor_path = 'anchor_path\\'
 
-#models = ["VGG-Face", "Facenet", "OpenFace", "DeepFace"]
-models = ["Facenet"]
-distance_metric = "euclidean_l2" # "euclidean_l2"
-detector_backend_list = ['ssd', 'opencv'] #'mtcnn'
+models = ["VGG-Face", "Facenet", "OpenFace", "DeepFace"]
+distance_metric = "euclidean_l2" # "euclidean"
+detector_backend_list = ['ssd', 'opencv', 'mtcnn']
 
 
-log_file =  open("performation_logs3.txt", "w+")
+log_file =  open("performation_logs.txt", "w+")
 
 for i in range(len(models)):
     if models[i] == 'VGG-Face':
@@ -64,17 +63,17 @@ for i in range(len(models)):
         no_face_count = 0
         start = time.time()
         log_file.write("Using " + detector + " backend \n")
-        for imageName in os.listdir(base_path + osym_path):
-            input_folder = base_path + imageName.split('_osym')[0]
+        for imageName in os.listdir(base_path + anchor_path):
+            input_folder = base_path + imageName.split('_anchor')[0]
             for sampleImage in os.listdir(input_folder+'\\'):
                 print(sampleImage)
                 input_foto_path = input_folder +'\\' + sampleImage
-                osym_foto_path = base_path + osym_path + imageName
+                anchor_foto_path = base_path + anchor_path + imageName
                 #----------------------
 
-                img1, face_flag = functions.preprocess_face(img=osym_foto_path, target_size=(input_shape_y, input_shape_x), enforce_detection = False, detector_backend = detector)
+                img1, face_flag = functions.preprocess_face(img=anchor_foto_path, target_size=(input_shape_y, input_shape_x), enforce_detection = False, detector_backend = detector)
                 if face_flag == False:
-                    print("osym de yuz bulunamadi")
+                    print("no face detected on anchor image")
                     img1 = cv2.resize(img1, (input_shape_y, input_shape_x))
                     img1 = image.img_to_array(img1)
                     img1 = np.expand_dims(img1, axis = 0)
@@ -121,17 +120,17 @@ for i in range(len(models)):
         no_face_count = 0
         start = time.time()
         log_file.write("Using " + detector + " backend \n")
-        for imageName in os.listdir(base_path + osym_path):
-            input_folder = base_path + "not_" + imageName.split('_osym')[0]
+        for imageName in os.listdir(base_path + anchor_path):
+            input_folder = base_path + "not_" + imageName.split('_anchor')[0]
             for sampleImage in os.listdir(input_folder+'\\'):
                 print(sampleImage)
                 input_foto_path = input_folder +'\\' + sampleImage
-                osym_foto_path = base_path + osym_path + imageName
+                anchor_foto_path = base_path + anchor_path + imageName
                 #----------------------
 
-                img1,face_flag = functions.preprocess_face(img=osym_foto_path, target_size=(input_shape_y, input_shape_x), enforce_detection = False, detector_backend = detector)
-                if face_flag == False: #osymde yuz bulunamadı. ama yine de verificationa gidilecek. (EĞER GÜNCEL RESİMSE VERİFİCATIONA GİT ESKİ RESİMSE GÜNCELLE UYARISI ÇIKABİLİR EKRANCA)
-                    print("osym de yuz bulunamadi")
+                img1,face_flag = functions.preprocess_face(img=anchor_foto_path, target_size=(input_shape_y, input_shape_x), enforce_detection = False, detector_backend = detector)
+                if face_flag == False: 
+                    print("no face detected on anchor image")
                     img1 = cv2.resize(img1, (input_shape_y, input_shape_x))
                     img1 = image.img_to_array(img1)
                     img1 = np.expand_dims(img1, axis = 0)
@@ -152,7 +151,7 @@ for i in range(len(models)):
                 #--------------------
                 #distance calculation
                 distance = dst.findEuclideanDistance(dst.l2_normalize(img1_representation), dst.l2_normalize(img2_representation)) 
-               # distance = dst.findEuclideanDistance(img1_representation, img2_representation)
+               # distance = dst.findEuclideanDistance(img1_representation, img2_representation) # when using euclidian distance
                 #----------------------
                 #decision
                 if distance <= threshold:
