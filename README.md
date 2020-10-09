@@ -17,7 +17,7 @@ I updated the functions.py to get information about the failiure reason of the f
 
 I fixed the part where opencv's haarcascades are used for face detection by adding a convert to the 1-channel gray image before the facial cascades are applied. Because haarcascades only work on gray images properly.  <br> 
 
-## Different Model Comparisons Using Different Distance Metrics for Each
+## Comparisons between Different Models where Different Backends and Distance Metrics was used
 
 I worked with a face dataset of 4 different people, taken with a webcam and containing approximately 180 positive and negative samples with dimensions of 640 x 480. Anchor pictures are 170x226 sized passport photos of these people, while positive sample pictures are taken with a webcam in different poses (with glasses, without glasses, tied hair, untied hair, looking at slightly different angles, etc.), while negative pictures contain sample pictures of the other 3 people for each person. The below image shows my results on positive and negative samples using the default threshold of https://github.com/serengil/deepface and their durations in second  <br>  <br>
 
